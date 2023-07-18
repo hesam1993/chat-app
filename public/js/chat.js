@@ -1,12 +1,12 @@
 const socket = io()
-console.log('app is running')
 const sendBtn = document.querySelector('#send-message')
 const message = document.querySelector('#message')
 const messages = document.querySelector('#messages')
 
-socket.on('join', (welcomeMessage) => {
-    console.log(welcomeMessage)
-})
+//Options
+const {username, room} = Qs.parse(location.search, {ignoreQueryPrefix: true})
+
+
 
 socket.on('server-message', (message) => {
     console.log(message)
@@ -18,8 +18,18 @@ socket.on('server-message', (message) => {
 
 sendBtn.addEventListener('click', (e) => {
     e.preventDefault()
-    socket.emit('client-message', message.value)
+    socket.emit('client-message', message.value, (error)=>{
+        if(error){
+            return console.log(error)
+        }
+        console.log('Message is received by the server')
+    })
 })
+
+
+socket.emit('join', {username, room}, (error) => {
+    console.log(error)
+},)
 
 const resetMessageForm = () => {
     message.value = ''

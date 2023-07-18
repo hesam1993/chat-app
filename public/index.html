@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Chat App</title>
 </head>
+
 <body>
-    <form>
-        <input type="text" id="message">
-        <button id="send-message">send message</button>
+
+    <form action="/chat.html" method="get">
+        <label for="username"></label>
+        <input type="text" name="username" id="username" required>
+        <label for="room"></label>
+        <input type="text" name="room" id="room" required>
+        <button>Join</button>
     </form>
 
-    <div id="messages">
-        
-    </div>
-    
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="./js/chat.js"></script>
+
+
 </body>
+
 </html>

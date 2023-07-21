@@ -2,7 +2,13 @@ const path = require("path");
 const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
-const { addUser, getUsersInRoom } = require("./utils/users");
+const {
+  addUser,
+  getUsersInRoom,
+  getUser,
+  removeUser,
+} = require("./utils/users");
+const { generateMessage } = require("./utils/messages");
 
 const app = express();
 const server = http.createServer(app);
@@ -25,26 +31,60 @@ io.on("connection", (socket) => {
     }
 
     socket.join(user.room);
-    socket.emit("server-message", `Welcome ${username}`);
+    socket.emit(
+      "server-message",
+      generateMessage("Admin", `Welcome ${username}`)
+    );
     socket.broadcast
       .to(user.room)
-      .emit("server-message", `${user.username} has joined the room!`);
+      .emit(
+        "server-message",
+        generateMessage("Admin", `${user.username} has joined the room!`)
+      );
 
     io.to(user.room).emit("roomData", {
       room: user.room,
       users: getUsersInRoom(user.room),
     });
+    callback();
   });
 
   //sending client message to everyone in the room
   socket.on("client-message", (message, callback) => {
-    io.emit("server-message", message);
+    const user = getUser(socket.id);
+
+    io.to(user.room).emit(
+      "server-message",
+      generateMessage(user.username, message)
+    );
+    callback();
+  });
+
+  socket.on("send-location", (position, callback) => {
+    const user = getUser(socket.id);
+    io.to(user.room).emit(
+      "location-message",
+      generateMessage(
+        user.username,
+        `https://google.com/maps?q=${position.longitude},${position.latitude}`
+      )
+    );
     callback();
   });
 
   //informing everyone that someone has left the room
   socket.on("disconnect", () => {
-    io.emit("server-message", "a user has left");
+    const user = removeUser(socket.id);
+    if (user) {
+      io.to(user.room).emit(
+        "server-message",
+        generateMessage("Admin", `${user.username} has left`)
+      );
+      io.to(user.room).emit("roomData", {
+        room: user.room,
+        users: getUsersInRoom(user.room),
+      });
+    }
   });
 });
 

@@ -1,4 +1,3 @@
-
 //Elements
 const $messageForm = document.querySelector("#message-form");
 const $messageFormInput = $messageForm.querySelector("input");
@@ -107,6 +106,20 @@ $locationBtn.addEventListener("click", () => {
       }
     );
   });
+});
+
+socket.on("last-messages", (lastMessages) => {
+  for ( message of lastMessages ){
+    const html = Mustache.render(messageTemplate, {
+      username: message.username,
+      message: message.text,
+      createdAt: moment(message.createdAt).format("hh:mm a"),
+    });
+    $messages.insertAdjacentHTML("beforeend", html);
+    console.log(message.createdAt);
+  }
+
+  console.log(lastMessages);
 });
 
 socket.emit("join", { username, room }, (error) => {

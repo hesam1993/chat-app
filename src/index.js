@@ -31,6 +31,9 @@ io.on("connection", (socket) => {
   socket.on("join", async ({ username, room }, callback) => {
     socket.join(room);
 
+    const lastMessages = await Message.find({ room });
+    socket.emit("last-messages", lastMessages);
+  
     socket.emit(
       "server-message",
       generateMessage("Admin", `Welcome ${username}`)
@@ -64,23 +67,24 @@ io.on("connection", (socket) => {
       users: currentUsers,
     });
 
+
     callback();
   });
 
   //sending client message to everyone in the room
   socket.on("client-message", async (message, callback) => {
     const user = await User.findOne({ socketId: socket.id });
-    const newMessage = generateMessage(user.username, message);
+    // const newMessage = generateMessage(user.username, message);
 
-    const messageObj = new Message({
-      messageContent: message,
+    const newMessage = new Message({
+      text: message,
       username: user.username,
       room: user.room,
-      timestamp: newMessage.createdAt,
+      createdAt: new Date().getTime(),
     });
 
     try {
-      await messageObj.save();
+      await newMessage.save();
     } catch (e) {
       console.log(e);
     }

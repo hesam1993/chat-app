@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const messageSchema = new mongoose.Schema({
-    messageContent: {
+    text: {
         type: String,
         required: true,
         trim: true
@@ -16,8 +16,8 @@ const messageSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    timestamp: {
-        type: String,
+    createdAt: {
+        type: Date,
         required: true
     }
 })

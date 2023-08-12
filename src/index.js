@@ -35,7 +35,7 @@ io.on("connection", (socket) => {
         generateMessage("Admin", `${username} has joined the room!`)
       );
 
-    const currentUser = await User.findOne({ socketId: socket.id });
+    const currentUser = await User.findOne({ username });
     console.log(currentUser)
     if ( currentUser && currentUser.length === 1) {
       currentUser.room = room;
@@ -62,8 +62,11 @@ io.on("connection", (socket) => {
   });
 
   //sending client message to everyone in the room
-  socket.on("client-message", async (message, callback) => {
-    const user = await User.findOne({ socketId: socket.id });
+  socket.on("client-message", async (message, username, callback) => {
+    const user = await User.findOne({ username });
+    user.socketId = socket.id;
+    socket.join(user.room);
+    await user.save();
     // const newMessage = generateMessage(user.username, message);
 
     const newMessage = new Message({
@@ -82,8 +85,11 @@ io.on("connection", (socket) => {
     callback();
   });
 
-  socket.on("send-location", async (position, callback) => {
-    const user = await User.findOne({ socketId: socket.id });
+  socket.on("send-location", async (position,username, callback) => {
+    const user = await User.findOne({ username });
+    user.socketId = socket.id;
+    socket.join(user.room);
+    await user.save();
     io.to(user.room).emit(
       "location-message",
       generateMessage(

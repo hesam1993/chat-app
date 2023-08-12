@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
 
-function Login({ socket }) {
+function Login({ setInfo, socket }) {
 
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -24,15 +24,23 @@ function Login({ socket }) {
       setRoom(e.target.value);
     }
   };
+  const submitHandler = () => {
+    socket.emit("join", { username, room }, (error) => {
+      if (error) {
+        alert(error);
+        navigate(`/`)
+      }
+    });
+    setInfo(username, room);
+    navigate(`/chat-room`);
+  }
   return (
     <>
       <div className="centered-form">
         <div className="centered-form__box">
           <h1>Join</h1>
           <form
-            onSubmit={() =>
-              navigate(`/chat-room?username=${username}&room=${room}`)
-            }
+            onSubmit={submitHandler}
           >
             <label for="username"></label>
             <input

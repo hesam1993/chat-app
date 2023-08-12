@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
 
 function Login({ socket }) {
-  socket.emit("room-list-request", () => {});
-  socket.on("room-list-respond", (roomList) => {
-    for (const room of roomList) {
-      console.log(room);
-    }
-  });
+
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
+
+  useEffect(() => {
+    socket.emit("room-list-request", () => { });
+    socket.on("room-list-respond", (roomList) => {
+      for (const room of roomList) {
+        console.log(room);
+      }
+    });
+  }, [])
+
   const inputHandler = (e) => {
     const id = e.target.id;
     if (id === "username") {

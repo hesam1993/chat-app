@@ -3,8 +3,10 @@ import "./App.css";
 import Login from "./Components/Login";
 import ChatRoom from "./Components/ChatRoom";
 import io from "socket.io-client";
-const socket = io.connect("https://localhost:5000");
+
+
 function App() {
+  const socket = io.connect("http://localhost:5000");
   return (
     <div className="App">
       <BrowserRouter>

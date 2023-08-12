@@ -3,9 +3,9 @@ const app = express()
 const cors = require("cors")
 const http = require('http').Server(app);
 const io = require('socket.io')(http, {
-    cors: {
-        origin: "https://localhost:3000"
-    }
+  cors: {
+    origin: "http://localhost:3000"
+  }
 });
 
 app.use(cors())
@@ -14,32 +14,15 @@ const Message = require("./models/message");
 const User = require("./models/user");
 const { generateMessage } = require("./utils/messages");
 
-// const server = http.createServer(app);
-
-// const io = socketio(server);
-// const io = new Server({
-//   cors: {
-//     origin: "http://localhost:3000"
-//   }
-// });
-
-// io.listen(5000);
 
 const port = process.env.PORT || 5000;
-
-// Define paths for Express config
-// const publicDirectoryPath = path.join(__dirname, "../public");
-
-// Setup static directory to serve
-// app.use(express.static(publicDirectoryPath));
-
 io.on("connection", (socket) => {
   socket.on("join", async ({ username, room }, callback) => {
     socket.join(room);
 
     const lastMessages = await Message.find({ room });
     socket.emit("last-messages", lastMessages);
-  
+
     socket.emit(
       "server-message",
       generateMessage("Admin", `Welcome ${username}`)
@@ -52,12 +35,13 @@ io.on("connection", (socket) => {
         generateMessage("Admin", `${username} has joined the room!`)
       );
 
-    const currentUser = await User.findOne({ username });
-    if (currentUser) {
+    const currentUser = await User.findOne({ socketId: socket.id });
+    console.log(currentUser)
+    if ( currentUser && currentUser.length === 1) {
       currentUser.room = room;
       currentUser.socketId = socket.id;
       await currentUser.save();
-    } else {
+    } else if (currentUser === null) {
       const newUser = new User({ socketId: socket.id, username, room });
 
       try {

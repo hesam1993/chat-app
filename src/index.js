@@ -1,31 +1,37 @@
-const path = require("path");
-const http = require("http");
-const express = require("express");
-const socketio = require("socket.io");
+const express = require("express")
+const app = express()
+const cors = require("cors")
+const http = require('http').Server(app);
+const io = require('socket.io')(http, {
+    cors: {
+        origin: "https://localhost:3000"
+    }
+});
+
+app.use(cors())
 require("./db/mongoose");
 const Message = require("./models/message");
-// const Room = require("./models/room");
 const User = require("./models/user");
-
-const {
-  addUser,
-  getUsersInRoom,
-  getUser,
-  removeUser,
-} = require("./utils/users");
 const { generateMessage } = require("./utils/messages");
 
-const app = express();
-const server = http.createServer(app);
-const io = socketio(server);
+// const server = http.createServer(app);
 
-const port = process.env.PORT || 3000;
+// const io = socketio(server);
+// const io = new Server({
+//   cors: {
+//     origin: "http://localhost:3000"
+//   }
+// });
+
+// io.listen(5000);
+
+const port = process.env.PORT || 5000;
 
 // Define paths for Express config
-const publicDirectoryPath = path.join(__dirname, "../public");
+// const publicDirectoryPath = path.join(__dirname, "../public");
 
 // Setup static directory to serve
-app.use(express.static(publicDirectoryPath));
+// app.use(express.static(publicDirectoryPath));
 
 io.on("connection", (socket) => {
   socket.on("join", async ({ username, room }, callback) => {
@@ -133,6 +139,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(port, () => {
+http.listen(port, () => {
   console.log("Server is running on port " + port);
 });

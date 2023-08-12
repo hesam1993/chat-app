@@ -1,39 +1,28 @@
-const path = require("path");
-const http = require("http");
-const express = require("express");
-const socketio = require("socket.io");
+const express = require("express")
+const app = express()
+const cors = require("cors")
+const http = require('http').Server(app);
+const io = require('socket.io')(http, {
+  cors: {
+    origin: "http://localhost:3000"
+  }
+});
+
+app.use(cors())
 require("./db/mongoose");
 const Message = require("./models/message");
-// const Room = require("./models/room");
 const User = require("./models/user");
-
-const {
-  addUser,
-  getUsersInRoom,
-  getUser,
-  removeUser,
-} = require("./utils/users");
 const { generateMessage } = require("./utils/messages");
 
-const app = express();
-const server = http.createServer(app);
-const io = socketio(server);
 
-const port = process.env.PORT || 3000;
-
-// Define paths for Express config
-const publicDirectoryPath = path.join(__dirname, "../public");
-
-// Setup static directory to serve
-app.use(express.static(publicDirectoryPath));
-
+const port = process.env.PORT || 5000;
 io.on("connection", (socket) => {
   socket.on("join", async ({ username, room }, callback) => {
     socket.join(room);
 
     const lastMessages = await Message.find({ room });
     socket.emit("last-messages", lastMessages);
-  
+
     socket.emit(
       "server-message",
       generateMessage("Admin", `Welcome ${username}`)
@@ -46,12 +35,13 @@ io.on("connection", (socket) => {
         generateMessage("Admin", `${username} has joined the room!`)
       );
 
-    const currentUser = await User.findOne({ username });
-    if (currentUser) {
+    const currentUser = await User.findOne({ socketId: socket.id });
+    console.log(currentUser)
+    if ( currentUser && currentUser.length === 1) {
       currentUser.room = room;
       currentUser.socketId = socket.id;
       await currentUser.save();
-    } else {
+    } else if (currentUser === null) {
       const newUser = new User({ socketId: socket.id, username, room });
 
       try {
@@ -133,6 +123,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(port, () => {
+http.listen(port, () => {
   console.log("Server is running on port " + port);
 });

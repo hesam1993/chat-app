@@ -4,12 +4,14 @@ const userSchema = new mongoose.Schema({
     socketId: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        unique: true
     },
     username: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        unique: true
     },
     room: {
         type: String,

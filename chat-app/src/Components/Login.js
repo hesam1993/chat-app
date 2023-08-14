@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 function Login({ setInfo, socket }) {
 
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
+  const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
     socket.emit("room-list-request", () => { });
     socket.on("room-list-respond", (roomList) => {
+      setRooms([])
+      let tempRooms = [];
       for (const room of roomList) {
-        console.log(room);
+        if(tempRooms.indexOf(room) === -1) {
+          tempRooms.push(room);
+        }
       }
+      setRooms( [...tempRooms] )
     });
   }, [])
 
@@ -61,7 +67,9 @@ function Login({ setInfo, socket }) {
               onChange={(e) => inputHandler(e)}
               required
             />
-            <datalist id="roomItems"></datalist>
+            <datalist id="roomItems">
+              {rooms.length > 0 && rooms.map(room => <option key={room} value={room}>{room}</option>)}
+            </datalist>
             <button>Join</button>
           </form>
         </div>

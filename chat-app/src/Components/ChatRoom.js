@@ -15,16 +15,20 @@ function ChatRoom({ getInfo, socket, messages, locationMessages, roomUsers }) {
 
   useEffect(() => {
     setCMessages(messages)
+    setTimeout(()=>{
+      autoscroll();
+    },100)
   }, [messages])
 
   useEffect(() => {
-    // autoscroll();
     setCLocationMessages(locationMessages)
+    setTimeout(()=>{
+      autoscroll();
+    },100)
 
   }, [locationMessages])
 
   useEffect(() => {
-    // autoscroll();
     setCRoomUsers(roomUsers)
 
   }, [roomUsers])
@@ -33,25 +37,8 @@ function ChatRoom({ getInfo, socket, messages, locationMessages, roomUsers }) {
   const autoscroll = () => {
     //new message element
     const $messages = document.querySelector("#messages");
-    const $newMessage = $messages.lastElementChild;
-
-    // height of the new message
-    const newMessageStyles = getComputedStyle($newMessage);
-    const newMessageMargin = parseInt(newMessageStyles.marginBottom);
-    const newMessageHeight = $newMessage.offsetHeight + newMessageMargin;
-
-    // Visible Height
-    const visibleHeight = $messages.offsetHeight;
-
-    //Height of messages container
-    const containerHeight = $messages.scrollHeight;
-
-    //How far have I scrolled?
-    const scrollOffset = $messages.scrollTop + visibleHeight;
-
-    if (containerHeight - newMessageHeight <= scrollOffset) {
-      $messages.scrollTop = $messages.scrollHeight;
-    }
+    $messages.scrollTop = $messages.scrollHeight;
+   
   };
   const sendLocation = () => {
     if (!navigator.geolocation) {

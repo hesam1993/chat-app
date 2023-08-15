@@ -142,11 +142,18 @@ function ChatRoom({ getInfo, socket, messages, locationMessages, roomUsers }) {
           </div>
           <div className="compose">
             <form id="message-form">
-              <input type="text" id="msg" value={msgInputValue} onChange={(e) => { onInputChange(e) }} required autoComplete="off" />
-              <button id="sendBtn" onClick={(e) => { sendMessage(e) }}>send message</button>
+              <div className="first-row">
+                <input type="text" id="msg" value={msgInputValue} onChange={(e) => { onInputChange(e) }} required autoComplete="off" />
+              </div>
+              <div className="second-row">
+                <button id="sendBtn" onClick={(e) => { sendMessage(e) }}>Send Message</button>
+                <button id="send-location" onClick={sendLocation}>Send Location</button>
+              </div>
+              
+
             </form>
 
-            <button id="send-location" onClick={sendLocation}>Send Location</button>
+            
           </div>
 
         </div>

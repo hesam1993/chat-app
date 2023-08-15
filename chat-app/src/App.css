@@ -136,28 +136,47 @@ button:disabled {
 /* Message Composition Styles */
 
 .compose {
-  display: flex;
-  flex-shrink: 0;
   margin-top: 16px;
-  padding: 24px;
+  padding: 12px;
 }
 
 .compose form {
   display: flex;
-  flex-grow: 1;
-  margin-right: 16px;
+  flex-wrap: wrap;
+  flex-direction: row;
 }
 
 .compose input {
   border: 1px solid #eeeeee;
   width: 100%;
-  padding: 12px;
-  margin: 0 16px 0 0;
-  flex-grow: 1;
+  margin: 4px;
+}
+.first-row {
+  flex: 50%;
+  padding: 10px;
+}
+.second-row{
+  flex: 50%;
+  padding: 10px;
 }
 
 .compose button {
   font-size: 14px;
+  width: 42%;
+  margin: 4px;
+}
+
+/* Responsive layout - makes a one column-layout instead of a two-column layout */
+@media (max-width: 800px) {
+ .compose .first-row {
+    flex: 100%;
+  }
+  .compose .second-row{
+    flex: 100%;
+  }
+  .compose .second-row button{
+    width: 100%;
+  }
 }
 
 /* Chat Sidebar Styles */

@@ -1,17 +1,33 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-function ChatRoom({ getInfo, socket }) {
+function ChatRoom({ getInfo, socket, messages, locationMessages, roomUsers }) {
   const [_username, _room] = getInfo();
   const [username, setUsername] = useState(_username);
   const [room, setRoom] = useState(_room);
   const [users, setUsers] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [locationMessages, setLocationMessages] = useState([]);
-  const $messageForm = document.querySelector("#message-form");
+  const [msgInputValue, setMsgInputValue] = useState('');
+  const [cLocationMessages, setCLocationMessages] = useState([]);
+  const [cMessages, setCMessages] = useState(messages);
+  const [croomUsers, setCRoomUsers] = useState(roomUsers);
   // const $messageFormInput = $messageForm.querySelector("input");
   // const $messageFormButton = $messageForm.querySelector("button");
 
+  useEffect(() => {
+    setCMessages(messages)
+  }, [messages])
+
+  useEffect(() => {
+    // autoscroll();
+    setCLocationMessages(locationMessages)
+
+  }, [locationMessages])
+
+  useEffect(() => {
+    // autoscroll();
+    setCRoomUsers(roomUsers)
+
+  }, [roomUsers])
 
 
   const autoscroll = () => {
@@ -62,44 +78,24 @@ function ChatRoom({ getInfo, socket }) {
   }
   const sendMessage = (e) => {
     e.preventDefault();
-    // const $messageFormButton = $messageForm.querySelector("#sendBtn");
-    // const $messageFormInput = $messageForm.querySelector("#msg");
-    // $messageFormButton.setAttribute("disabled", "disabled");
 
-    const msg = document.querySelector("#msg").value;
-    socket.emit("client-message", msg, username, (error) => {
-      //enable
-      // $messageFormButton.removeAttribute("disabled");
-      // $messageFormInput.value = "";
-      // $messageFormInput.focus();
+    socket.emit("client-message", msgInputValue, username, (error) => {
       if (error) {
         return console.log(error);
       }
       console.log("Message is received by the server!");
     });
+    setMsgInputValue('');
+  }
+
+  const onInputChange = (e) => {
+    setMsgInputValue(e.target.value);
   }
 
 
-  useEffect(() => {
-    socket.on("location-message", (locationMessage) => {
-      console.log(locationMessage);
-      // const html = Mustache.render(locationTemplate, {
-      //   username: locationMessage.username,
-      //   locationMessage: locationMessage.text,
-      //   createdAt: moment(locationMessage.createdAt).format("hh:mm a"),
-      // });
-      // $messages.insertAdjacentHTML("beforeend", html);
-      // autoscroll();
-    });
+  // const setServerMessageSokcet = useCallback(()=>{
 
-    socket.on("server-message", (message) => {
-      console.log(message);
-      setMessages(current => [...current, message]);
-      console.log(messages)
-      // autoscroll();
-    });
-  }, [])
-
+  // }, [])
 
   return (
     <>
@@ -108,14 +104,14 @@ function ChatRoom({ getInfo, socket }) {
           <h2 className="room-title">{room}</h2>
           <h3 className="list-title">Users</h3>
           <ul className="users">
-            {users.map(user => <li>USER1</li>)}
+            {croomUsers && croomUsers.map(user => <li>{user.username}</li>)}
           </ul>
         </div>
         <div className="chat__main">
           <div id="messages" className="chat__messages">
-            {messages.map(message => {
+            {cMessages.map(message => {
               return (
-                <div id="message-template" type="text/html">
+                <div id="message-template" type="text/html" key={message.id}>
                   <div className="message">
                     <p>
                       <span className="message__name">{message.username}</span>
@@ -127,7 +123,7 @@ function ChatRoom({ getInfo, socket }) {
               )
             })}
 
-            {locationMessages.map(locMessage => {
+            {cLocationMessages.map(locMessage => {
               return (
                 <div id="location-template" type="text/html">
                   <div>
@@ -135,7 +131,7 @@ function ChatRoom({ getInfo, socket }) {
                       <span className="message__name">{locMessage.username}</span>
                       <span className="message_meta">{locMessage.createdAt}</span>
                     </p>
-                    <p><a target="_blank" href="#LOCATIONMESSAGE">{locMessage.username} Location</a></p>
+                    <p><a target="_blank" rel="noreferrer" href={locMessage.text}>{locMessage.username} Location</a></p>
                   </div>
                 </div>
               )
@@ -146,7 +142,7 @@ function ChatRoom({ getInfo, socket }) {
           </div>
           <div className="compose">
             <form id="message-form">
-              <input type="text" id="msg" required autoComplete="off" />
+              <input type="text" id="msg" value={msgInputValue} onChange={(e) => { onInputChange(e) }} required autoComplete="off" />
               <button id="sendBtn" onClick={(e) => { sendMessage(e) }}>send message</button>
             </form>
 

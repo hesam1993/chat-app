@@ -3,18 +3,40 @@ import "./App.css";
 import Login from "./Components/Login";
 import ChatRoom from "./Components/ChatRoom";
 import io from "socket.io-client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 function App() {
-  const socket = io.connect("http://localhost:5000");
-  const [username, setUsername] = useState()
-  const [room, setRoom] = useState()
+  const [socket, setSocket] = useState(io.connect("http://localhost:5000"));
+  const [username, setUsername] = useState();
+  const [room, setRoom] = useState();
+  const [messages, setMessages] = useState([]);
+  const [locationMessages, setLocationMessages] = useState([]);
+  const [roomUsers, setRoomUsers] = useState([]);
+
+  useEffect(() => {
+    socket.on("location-message", (locationMessage) => {
+      setLocationMessages( current => [ ...current, locationMessage]);
+      console.log(locationMessage)
+    });
+
+    socket.on("last-messages", async (message) => {
+      setMessages(current => [...current, ...message])
+    })
+
+    socket.on("server-message", async (message) => {
+      setMessages(current => [...current, message])
+    })
+
+    socket.on("room-data", async (roomUsers) => {
+      setRoomUsers(roomUsers.users)
+    })
+  }, [])
   const setInfo = (username, room) => {
     setRoom(room)
     setUsername(username)
   }
-  const getInfo = ()=>{
+  const getInfo = () => {
     return [username, room]
   }
   return (
@@ -23,7 +45,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login setInfo={setInfo} socket={socket} />} />
           <Route index element={<Login setInfo={setInfo} socket={socket} />} />
-          <Route path="chat-room" element={<ChatRoom getInfo={getInfo} socket={socket} />} />
+          <Route path="chat-room" element={<ChatRoom roomUsers={roomUsers} locationMessages={locationMessages} messages={messages} getInfo={getInfo} socket={socket} />} />
         </Routes>
       </BrowserRouter>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 function Login({ setInfo, socket }) {
@@ -9,18 +9,19 @@ function Login({ setInfo, socket }) {
   const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
+    setSocketCalls()
+  }, [])
+
+  const setSocketCalls = useCallback(() => {
     socket.emit("room-list-request", () => { });
     socket.on("room-list-respond", (roomList) => {
-      setRooms([])
       let tempRooms = [];
       for (const room of roomList) {
-        if(tempRooms.indexOf(room) === -1) {
           tempRooms.push(room);
-        }
       }
-      setRooms( [...tempRooms] )
-    });
-  }, [])
+      setRooms([...tempRooms])
+    })
+  },[])
 
   const inputHandler = (e) => {
     const id = e.target.id;

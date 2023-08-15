@@ -22,21 +22,17 @@ io.on("connection", (socket) => {
 
     const lastMessages = await Message.find({ room });
     socket.emit("last-messages", lastMessages);
-
     socket.emit(
       "server-message",
       generateMessage("Admin", `Welcome ${username}`)
     );
-
-    socket.broadcast
-      .to(room)
+    io.to(room)
       .emit(
         "server-message",
         generateMessage("Admin", `${username} has joined the room!`)
       );
 
     const currentUser = await User.findOne({ username });
-    console.log(currentUser)
     if ( currentUser && currentUser.length === 1) {
       currentUser.room = room;
       currentUser.socketId = socket.id;
@@ -52,7 +48,7 @@ io.on("connection", (socket) => {
     }
 
     const currentUsers = await User.find({ room });
-    io.to(room).emit("roomData", {
+    io.to(room).emit("room-data", {
       room: room,
       users: currentUsers,
     });
@@ -85,7 +81,7 @@ io.on("connection", (socket) => {
     callback();
   });
 
-  socket.on("send-location", async (position,username, callback) => {
+  socket.on("send-location", async (position, username, callback) => {
     const user = await User.findOne({ username });
     user.socketId = socket.id;
     socket.join(user.room);
@@ -102,7 +98,6 @@ io.on("connection", (socket) => {
 
   socket.on("room-list-request", async () => {
     const allRooms = await User.distinct("room");
-    console.log(socket.id);
     io.emit("room-list-respond", allRooms);
   });
 
@@ -116,7 +111,7 @@ io.on("connection", (socket) => {
         generateMessage("Admin", `${user.username} has left`)
       );
       const currentUsers = await User.find({ room: user.room });
-      io.to(user.room).emit("roomData", {
+      io.to(user.room).emit("room-data", {
         room: user.room,
         users: currentUsers,
       });

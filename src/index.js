@@ -17,7 +17,7 @@ const { generateMessage } = require("./utils/messages");
 
 const port = process.env.PORT || 5000;
 io.on("connection", (socket) => {
-  socket.on("join", async ({ username, room }, callback) => {
+  socket.on("join", async ({ username, room, privateRoom }, callback) => {
     socket.join(room);
 
     const lastMessages = await Message.find({ room });
@@ -33,12 +33,13 @@ io.on("connection", (socket) => {
       );
 
     const currentUser = await User.findOne({ username });
-    if ( currentUser && currentUser.length === 1) {
+    if (currentUser && currentUser.length === 1) {
       currentUser.room = room;
       currentUser.socketId = socket.id;
       await currentUser.save();
     } else if (currentUser === null) {
-      const newUser = new User({ socketId: socket.id, username, room });
+      const alreadyCreatedRoom = await User.find().where("room").equals(room);
+      const newUser = new User({ socketId: socket.id, username, room, private: alreadyCreatedRoom.length ? alreadyCreatedRoom[0].private : privateRoom });
 
       try {
         await newUser.save();
@@ -97,7 +98,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("room-list-request", async () => {
-    const allRooms = await User.distinct("room");
+    const allRooms = await User.find({ private: false }).distinct("room");
     io.emit("room-list-respond", allRooms);
   });
 

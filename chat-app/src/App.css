@@ -77,6 +77,20 @@ button:disabled {
 .centered-form button {
   width: 100%;
 }
+.form-row{
+  display: flex;
+  flex: 100%;
+  flex-wrap: wrap;
+}
+.form-row input{
+  flex: 12%;
+  margin: 2px;
+  width: 16px;
+  height: 16px;
+}
+.form-row label{
+  flex: 82%;
+}
 
 .centered-form input {
   margin-bottom: 16px;

@@ -10,6 +10,7 @@ function App() {
   const [socket, setSocket] = useState(io.connect("http://localhost:5000"));
   const [username, setUsername] = useState();
   const [room, setRoom] = useState();
+  const [privateRoom, setPrivateRoom] = useState();
   const [messages, setMessages] = useState([]);
   const [locationMessages, setLocationMessages] = useState([]);
   const [roomUsers, setRoomUsers] = useState([]);
@@ -32,9 +33,10 @@ function App() {
       setRoomUsers(roomUsers.users)
     })
   }, [])
-  const setInfo = (username, room) => {
+  const setInfo = (username, room, privateRoom) => {
     setRoom(room)
     setUsername(username)
+    setPrivateRoom(privateRoom)
   }
   const getInfo = () => {
     return [username, room]

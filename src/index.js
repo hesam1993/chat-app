@@ -17,32 +17,29 @@ const { generateMessage } = require("./utils/messages");
 
 const port = process.env.PORT || 5000;
 io.on("connection", (socket) => {
-  socket.on("join", async ({ username, room }, callback) => {
+  socket.on("join", async ({ username, room, privateRoom }, callback) => {
     socket.join(room);
 
     const lastMessages = await Message.find({ room });
     socket.emit("last-messages", lastMessages);
-
     socket.emit(
       "server-message",
       generateMessage("Admin", `Welcome ${username}`)
     );
-
-    socket.broadcast
-      .to(room)
+    io.to(room)
       .emit(
         "server-message",
         generateMessage("Admin", `${username} has joined the room!`)
       );
 
-    const currentUser = await User.findOne({ socketId: socket.id });
-    console.log(currentUser)
-    if ( currentUser && currentUser.length === 1) {
+    const currentUser = await User.findOne({ username });
+    if (currentUser && currentUser.length === 1) {
       currentUser.room = room;
       currentUser.socketId = socket.id;
       await currentUser.save();
     } else if (currentUser === null) {
-      const newUser = new User({ socketId: socket.id, username, room });
+      const alreadyCreatedRoom = await User.find().where("room").equals(room);
+      const newUser = new User({ socketId: socket.id, username, room, private: alreadyCreatedRoom.length ? alreadyCreatedRoom[0].private : privateRoom });
 
       try {
         await newUser.save();
@@ -52,7 +49,7 @@ io.on("connection", (socket) => {
     }
 
     const currentUsers = await User.find({ room });
-    io.to(room).emit("roomData", {
+    io.to(room).emit("room-data", {
       room: room,
       users: currentUsers,
     });
@@ -62,8 +59,11 @@ io.on("connection", (socket) => {
   });
 
   //sending client message to everyone in the room
-  socket.on("client-message", async (message, callback) => {
-    const user = await User.findOne({ socketId: socket.id });
+  socket.on("client-message", async (message, username, callback) => {
+    const user = await User.findOne({ username });
+    user.socketId = socket.id;
+    socket.join(user.room);
+    await user.save();
     // const newMessage = generateMessage(user.username, message);
 
     const newMessage = new Message({
@@ -82,8 +82,11 @@ io.on("connection", (socket) => {
     callback();
   });
 
-  socket.on("send-location", async (position, callback) => {
-    const user = await User.findOne({ socketId: socket.id });
+  socket.on("send-location", async (position, username, callback) => {
+    const user = await User.findOne({ username });
+    user.socketId = socket.id;
+    socket.join(user.room);
+    await user.save();
     io.to(user.room).emit(
       "location-message",
       generateMessage(
@@ -95,8 +98,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("room-list-request", async () => {
-    const allRooms = await User.distinct("room");
-    console.log(socket.id);
+    const allRooms = await User.find({ private: false }).distinct("room");
     io.emit("room-list-respond", allRooms);
   });
 
@@ -110,7 +112,7 @@ io.on("connection", (socket) => {
         generateMessage("Admin", `${user.username} has left`)
       );
       const currentUsers = await User.find({ room: user.room });
-      io.to(user.room).emit("roomData", {
+      io.to(user.room).emit("room-data", {
         room: user.room,
         users: currentUsers,
       });

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const uri = "mongodb+srv://hesam:ofTEWwGZvUozOFCa@cluster0.my7gil9.mongodb.net/?retryWrites=true&w=majority";
+const uri = "Mongodb url";
 
 try {
     // Connect to the MongoDB cluster
